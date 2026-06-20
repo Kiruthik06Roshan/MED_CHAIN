@@ -1,0 +1,25 @@
+[
+  {
+    "type": "function",
+    "name": "verify",
+    "stateMutability": "nonpayable",
+    "inputs": [
+      { "name": "signer", "type": "address" },
+      { "name": "messageHash", "type": "bytes32" },
+      { "name": "v", "type": "uint8" },
+      { "name": "r", "type": "bytes32" },
+      { "name": "s", "type": "bytes32" }
+    ],
+    "outputs": [{ "name": "", "type": "bool" }]
+  },
+  {
+    "type": "event",
+    "name": "SignatureVerified",
+    "inputs": [
+      { "name": "signer", "type": "address", "indexed": true },
+      { "name": "messageHash", "type": "bytes32", "indexed": true },
+      { "name": "valid", "type": "bool", "indexed": false },
+      { "name": "timestamp", "type": "uint256", "indexed": false }
+    ]
+  }
+]
