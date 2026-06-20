@@ -5,6 +5,7 @@ import { useWallet } from '@/hooks/useWallet';
 import { createConsentPayload } from '@/utils/consent';
 import type { ConsentRequest } from '@/types/consent';
 import { splitSignature } from '@/utils/blockchain';
+import { ethers } from 'ethers';
 
 export function useSignature() {
   const { signMessage, address } = useWallet();
@@ -21,7 +22,10 @@ export function useSignature() {
     try {
       const payload = createConsentPayload(request);
       const message = JSON.stringify(payload);
-      const signature = await signMessage(message);
+      // Hash the JSON payload to get a 32-byte Keccak256 hash
+      const messageHash = ethers.keccak256(ethers.toUtf8Bytes(message));
+      // Sign the 32-byte hash as binary bytes (adds standard '\x19Ethereum Signed Message:\n32' prefix)
+      const signature = await signMessage(ethers.getBytes(messageHash));
       if (!signature) throw new Error('Signing cancelled');
       const { v, r, s } = splitSignature(signature);
       return { payload, signature, v, r, s, signer: address };

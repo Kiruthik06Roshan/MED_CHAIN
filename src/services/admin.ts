@@ -1,3 +1,5 @@
+import type { AuditEvent } from '@/types';
+
 async function fetchAPI<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, { ...options, credentials: 'include' });
   if (!res.ok) throw new Error('Request failed');
@@ -35,7 +37,7 @@ export async function disableUser(userId: string): Promise<void> {
   await fetchAPI(`/api/admin/user/${userId}/disable`, { method: 'POST' });
 }
 
-export async function getAdminAuditLog(filters?: Record<string, string>) {
+export async function getAdminAuditLog(filters?: Record<string, string>): Promise<AuditEvent[]> {
   const params = new URLSearchParams(filters);
-  return fetchAPI(`/api/admin/audit?${params}`);
+  return fetchAPI<AuditEvent[]>(`/api/admin/audit?${params}`);
 }

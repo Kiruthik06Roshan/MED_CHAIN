@@ -7,6 +7,12 @@ export interface MedicalRecord {
   data: Record<string, unknown>;
   signatureProof?: SignatureProof;
   createdAt: string;
+  // File upload fields
+  isFile?: boolean;
+  fileName?: string;
+  fileType?: string;
+  fileSize?: number;
+  storagePath?: string;
 }
 
 export interface Prescription {

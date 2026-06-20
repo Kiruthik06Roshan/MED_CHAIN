@@ -56,3 +56,17 @@ export async function approveAccessRequest(requestId: string): Promise<void> {
 export async function denyAccessRequest(requestId: string): Promise<void> {
   await fetchAPI(`/api/patient/access-request/${requestId}/deny`, { method: 'POST' });
 }
+
+export async function uploadDocument(formData: FormData): Promise<{ record: { id: string; title: string; fileName: string } }> {
+  const res = await fetch('/api/documents/upload', { method: 'POST', body: formData, credentials: 'include' });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Upload failed' }));
+    throw new Error((err as { error?: string }).error ?? 'Upload failed');
+  }
+  return res.json();
+}
+
+export async function getDocumentUrl(documentId: string): Promise<{ signedUrl: string; fileType: string; fileName: string }> {
+  return fetchAPI(`/api/documents/${documentId}`);
+}
+

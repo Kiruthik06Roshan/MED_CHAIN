@@ -53,6 +53,7 @@ export const PUBLIC_ROUTES = [
   ROUTES.AUTH.LOGIN,
   ROUTES.AUTH.SIGNUP,
   ROUTES.AUTH.CALLBACK,
+  '/dev-login',
 ];
 
 export const ROLE_HOME_ROUTES: Record<string, string> = {

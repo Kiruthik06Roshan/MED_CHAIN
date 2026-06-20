@@ -1,10 +1,10 @@
 'use client';
 
 import { useAuth } from '@/hooks/useAuth';
-import { useWallet } from '@/hooks/useWallet';
 import { cn } from '@/utils/cn';
-import { formatAddress } from '@/utils/blockchain';
-import { LogOut, User, Wallet, ChevronDown } from 'lucide-react';
+import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
+import { WalletStatusBadge } from '@/components/wallet/WalletStatus';
+import { LogOut, User, ChevronDown } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 
 interface Props {
@@ -13,7 +13,6 @@ interface Props {
 
 export function Header({ sidebarCollapsed }: Props) {
   const { user, signOut } = useAuth();
-  const { address, isConnected, connectWallet } = useWallet();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -39,32 +38,39 @@ export function Header({ sidebarCollapsed }: Props) {
 
       {/* Right */}
       <div className="flex items-center gap-3">
-        {/* Wallet badge */}
-        {isConnected && address ? (
-          <div className="hidden sm:flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-medium border border-emerald-200">
-            <Wallet className="w-3 h-3" />
-            {formatAddress(address)}
-          </div>
-        ) : (
-          <button onClick={connectWallet}
-            className="hidden sm:flex items-center gap-1.5 bg-secondary text-muted-foreground px-3 py-1 rounded-full text-xs font-medium hover:bg-secondary/80 transition-colors border border-border">
-            <Wallet className="w-3 h-3" />
-            Connect Wallet
-          </button>
-        )}
+        {/* Wallet status badge (visible ≥ sm) */}
+        <div className="hidden sm:block">
+          <WalletStatusBadge />
+        </div>
+
+        {/* Connect / connected button */}
+        <div className="hidden sm:block">
+          <ConnectWalletButton size="sm" variant="outline" showAddress={false} />
+        </div>
 
         {/* User menu */}
         <div ref={menuRef} className="relative">
-          <button onClick={() => setMenuOpen(v => !v)}
-            className="flex items-center gap-2 hover:bg-secondary rounded-lg px-3 py-2 transition-colors">
+          <button
+            onClick={() => setMenuOpen(v => !v)}
+            className="flex items-center gap-2 hover:bg-secondary rounded-lg px-3 py-2 transition-colors"
+          >
             <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
               <User className="w-4 h-4 text-primary" />
             </div>
             <div className="hidden sm:block text-left">
-              <p className="text-sm font-medium text-foreground leading-tight">{user?.fullName ?? 'User'}</p>
-              <p className="text-xs text-muted-foreground capitalize">{user?.role?.toLowerCase()}</p>
+              <p className="text-sm font-medium text-foreground leading-tight">
+                {user?.fullName ?? 'User'}
+              </p>
+              <p className="text-xs text-muted-foreground capitalize">
+                {user?.role?.toLowerCase()}
+              </p>
             </div>
-            <ChevronDown className={cn('w-4 h-4 text-muted-foreground transition-transform', menuOpen && 'rotate-180')} />
+            <ChevronDown
+              className={cn(
+                'w-4 h-4 text-muted-foreground transition-transform',
+                menuOpen && 'rotate-180'
+              )}
+            />
           </button>
 
           {menuOpen && (
@@ -73,8 +79,10 @@ export function Header({ sidebarCollapsed }: Props) {
                 <p className="text-sm font-medium truncate">{user?.fullName}</p>
                 <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
               </div>
-              <button onClick={() => { signOut(); setMenuOpen(false); }}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors">
+              <button
+                onClick={() => { signOut(); setMenuOpen(false); }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+              >
                 <LogOut className="w-4 h-4" />
                 Sign out
               </button>

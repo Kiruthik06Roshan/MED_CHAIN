@@ -21,15 +21,22 @@ export async function GET(request: Request) {
     if (error) throw error;
 
     const records = (data ?? []).map(r => ({
-      id: r.id,
-      type: r.type,
-      title: r.data?.title ?? `${r.type} record`,
-      provider: r.data?.provider ?? 'Unknown',
-      date: r.data?.date ?? r.created_at,
-      data: r.data,
+      id:             r.id,
+      type:           r.type,
+      title:          r.data?.title ?? `${r.type} record`,
+      provider:       r.data?.provider ?? 'Unknown',
+      date:           r.data?.date ?? r.created_at,
+      data:           r.data,
       signatureProof: r.signature_proof,
-      createdAt: r.created_at,
+      createdAt:      r.created_at,
+      // File fields
+      isFile:      r.is_file   ?? false,
+      fileName:    r.file_name  ?? undefined,
+      fileType:    r.file_type  ?? undefined,
+      fileSize:    r.file_size  ?? undefined,
+      storagePath: r.storage_path ?? undefined,
     }));
+
 
     return NextResponse.json(records);
   } catch {

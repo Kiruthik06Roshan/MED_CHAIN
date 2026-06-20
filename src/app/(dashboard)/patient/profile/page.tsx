@@ -7,9 +7,9 @@ import { z } from 'zod';
 import { PageHeader } from '@/components/common/PageHeader';
 import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@/hooks/useWallet';
+import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
 import { createClient } from '@/lib/supabaseClient';
 import { Loader2, Wallet, User, Save } from 'lucide-react';
-import { formatAddress } from '@/utils/blockchain';
 
 const schema = z.object({
   fullName: z.string().min(2),
@@ -21,7 +21,7 @@ type FormData = z.infer<typeof schema>;
 
 export default function ProfilePage() {
   const { user, refreshUser } = useAuth();
-  const { address, isConnected, connectWallet } = useWallet();
+  const { address, isConnected } = useWallet();
   const [saved, setSaved] = useState(false);
   const supabase = createClient();
 
@@ -106,11 +106,7 @@ export default function ProfilePage() {
           ) : (
             <div>
               <p className="text-sm text-muted-foreground mb-3">Connect your Ethereum wallet for signature-based consent verification.</p>
-              <button onClick={connectWallet}
-                className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
-                <Wallet className="w-4 h-4" />
-                Connect MetaMask
-              </button>
+              <ConnectWalletButton variant="primary" size="default" />
             </div>
           )}
         </div>

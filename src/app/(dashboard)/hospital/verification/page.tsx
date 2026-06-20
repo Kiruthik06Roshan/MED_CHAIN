@@ -4,12 +4,13 @@ import { useState } from 'react';
 import { PageHeader } from '@/components/common/PageHeader';
 import { useSignatureVerifier } from '@/hooks/useContract';
 import { useWallet } from '@/hooks/useWallet';
+import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { formatAddress } from '@/utils/blockchain';
 
 export default function VerificationPage() {
   const { verify } = useSignatureVerifier();
-  const { isConnected, connectWallet } = useWallet();
+  const { isConnected } = useWallet();
   const [form, setForm] = useState({ signer: '', messageHash: '', v: '', r: '', s: '' });
   const [result, setResult] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
@@ -30,9 +31,9 @@ export default function VerificationPage() {
 
       <div className="max-w-2xl space-y-6">
         {!isConnected && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-700">
-            Connect your wallet to verify signatures on-chain.{' '}
-            <button onClick={connectWallet} className="underline font-medium">Connect now</button>
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+            <p className="text-sm text-amber-700 mb-3">Connect your wallet to verify signatures on-chain.</p>
+            <ConnectWalletButton variant="outline" size="sm" />
           </div>
         )}
 

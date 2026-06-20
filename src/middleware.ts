@@ -1,21 +1,26 @@
-import { createServerClient } from '@supabase/ssr';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { PUBLIC_ROUTES, ROLE_HOME_ROUTES } from '@/constants/routes';
 
 const VALID_ROLES = new Set(['PATIENT', 'HOSPITAL', 'PHARMACY', 'INSURANCE', 'ADMIN']);
 
+// Sanitise env URL — strip trailing /rest/v1/ if someone pasted the wrong value
+const SUPABASE_URL = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '')
+  .trim()
+  .replace(/\/rest\/v1\/?$/, '');
+
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!.trim(),
     {
       cookies: {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet: { name: string; value: string; options?: CookieOptions }[]) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
@@ -28,10 +33,14 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // getUser() validates the JWT against Supabase — do not replace with getSession()
+  // Use getSession() — reads the JWT from the cookie with NO network round-trip.
+  // This is the key fix for slow page loads: the old getUser() hit the Supabase
+  // Auth server on every single request (including static assets).
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const user = session?.user ?? null;
 
   const { pathname } = request.nextUrl;
 
@@ -54,26 +63,25 @@ export async function middleware(request: NextRequest) {
 
   // ── Authenticated on a public/auth page: redirect to role portal ─────────
   if (user && (pathname === '/' || pathname.startsWith('/auth'))) {
-    // 1. Try to get role from user_profiles (respects RLS via the user's JWT)
-    let role: string | undefined;
+    // 1. Try role from JWT metadata first — zero extra network calls
+    const metaRole = user.user_metadata?.role as string | undefined;
+    let role: string | undefined =
+      metaRole && VALID_ROLES.has(metaRole) ? metaRole : undefined;
 
-    const { data: profile } = await supabase
-      .from('user_profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    role = profile?.role;
-
-    // 2. If profile row is missing, fall back to the role stored in the JWT
-    //    metadata (written at sign-up and always present even before the DB
-    //    trigger has run or if the user was created via the dashboard).
-    if (!role || !VALID_ROLES.has(role)) {
-      const metaRole = user.user_metadata?.role as string | undefined;
-      role = metaRole && VALID_ROLES.has(metaRole) ? metaRole : 'PATIENT';
+    // 2. Only hit the DB if metadata is missing (rare: dashboard-created users)
+    if (!role) {
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+      role =
+        profile?.role && VALID_ROLES.has(profile.role)
+          ? profile.role
+          : 'PATIENT';
     }
 
-    const home = ROLE_HOME_ROUTES[role];
+    const home = ROLE_HOME_ROUTES[role!];
     if (home) {
       return NextResponse.redirect(new URL(home, request.url));
     }
