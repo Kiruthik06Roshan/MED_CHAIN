@@ -1,0 +1,9 @@
+import { createServerSupabaseClient } from '@/lib/supabaseServer';
+import { NextResponse } from 'next/server';
+import { ROUTES } from '@/constants/routes';
+
+export async function POST() {
+  const supabase = await createServerSupabaseClient();
+  await supabase.auth.signOut();
+  return NextResponse.redirect(new URL(ROUTES.AUTH.LOGIN, process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'));
+}
